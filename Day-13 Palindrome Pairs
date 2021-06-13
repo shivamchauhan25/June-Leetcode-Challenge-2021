@@ -1,0 +1,126 @@
+Palindrome Pairs
+
+Given a list of unique words, return all the pairs of the distinct indices (i, j) in the given list, so that the concatenation of the two words words[i] + words[j] is a palindrome.
+
+ 
+
+Example 1:
+
+Input: words = ["abcd","dcba","lls","s","sssll"]
+Output: [[0,1],[1,0],[3,2],[2,4]]
+Explanation: The palindromes are ["dcbaabcd","abcddcba","slls","llssssll"]
+Example 2:
+
+Input: words = ["bat","tab","cat"]
+Output: [[0,1],[1,0]]
+Explanation: The palindromes are ["battab","tabbat"]
+Example 3:
+
+Input: words = ["a",""]
+Output: [[0,1],[1,0]]
+ 
+
+Constraints:
+
+1 <= words.length <= 5000
+0 <= words[i].length <= 300
+words[i] consists of lower-case English letters.
+
+
+Solution:
+C++:
+class Solution {
+    
+	//utility function to check if a string is a palindrome
+    bool isPalindrome(string s){
+        int i=0, j=s.length()-1;
+        while(i<j){
+            if(s[i]!=s[j]) return false;
+            i++;
+            j--;
+        }
+        return true;  
+    }
+    
+	//utility function to reverse a string
+    string reverseString(string s){
+        string rev = s;
+        reverse(rev.begin(), rev.end());
+        return rev;
+    }
+    
+public:
+    vector<vector<int>> palindromePairs(vector<string>& words) {
+        
+        int n = words.size();
+		//using a set of vectors to avoid duplicates
+        set<vector<int> > result;
+        if(n<2) return {};
+        
+        //adding all the words in a hashmap to make search faster
+        unordered_map<string, int> idx;
+        for(int i=0; i<n; i++){
+            idx[words[i]] = i; 
+        }
+        
+        //Case 1: "" can be paired up with an existing palindrome -> both (i,j) && (j,i)
+        if(idx.find("")!=idx.end()){
+            int emptyIdx = idx[""];
+            for(int i=0; i<n; i++){
+                if(words[i]=="") continue;
+                if(isPalindrome(words[i])){
+                    result.insert({i, emptyIdx});
+                    result.insert({emptyIdx, i});
+                }
+            }
+        }
+        
+        //Case 2: if the reverse of string exists -> both (i,j) && (j,i)
+        for(int i=0; i<n; i++){
+            string rev = reverseString(words[i]);
+            //if the reverse exists and it is not the same string (in case of palindrome)
+            if(idx.find(rev)!=idx.end() && idx[rev]!=i){
+                int revIdx = idx[rev];
+                result.insert({i, revIdx});
+                result.insert({revIdx, i});
+            }
+        }
+        
+        //Case 3: substrings can make up a palindrome pair
+        //subcase 1: s1[:cut]=palindrome && reverse(s1[cut+1:])=s2 -> (j,i)
+        //subcase2: s1[cut+1:]=palindrome && reverse(s1[:cut])=s2 -> (i,j)
+        for(int i=0; i<n; i++){
+            string s1 = words[i];
+            for(int cut=1; cut<=s1.length(); cut++){
+                //s1[:cut] is palindrome
+                if(isPalindrome(s1.substr(0, cut))){
+                    //reverse(s1[cut+1:]) exists
+                    string possibleS2 = reverseString(s1.substr(cut));
+                    if(idx.find(possibleS2)!=idx.end()){
+                        int s2Idx = idx[possibleS2];
+                        if(s2Idx==i) continue;
+                        result.insert({s2Idx, i});
+                    }
+                }
+                //s1[cut+1:] is a palindrome
+                if(isPalindrome(s1.substr(cut))){
+                    string possibleS2 = reverseString(s1.substr(0, cut));
+                     if(idx.find(possibleS2)!=idx.end()){
+                        int s2Idx = idx[possibleS2];
+                        if(s2Idx==i) continue;
+                        result.insert({i, s2Idx});
+                    }
+                }
+            }
+        }
+        
+        vector<vector<int> > answer;
+        for(vector<int> res:result){
+            answer.push_back(res);
+        }
+        
+        return answer;
+        
+    }
+};
+
