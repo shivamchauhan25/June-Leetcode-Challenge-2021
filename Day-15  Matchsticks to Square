@@ -1,0 +1,44 @@
+Matchsticks to Square
+You are given an integer array of matchsticks where matchsticks[i] is the length of the ith matchstick. You want to use all the matchsticks to make one square. You should not break any stick, but you can link them up, and each matchstick must be used exactly one time.
+
+Return true if you can make this square and false otherwise.
+
+ 
+
+Example 1:
+
+
+Input: matchsticks = [1,1,2,2,2]
+Output: true
+Explanation: You can form a square with length 2, one side of the square came two sticks with length 1.
+Example 2:
+
+Input: matchsticks = [3,3,3,3,4]
+Output: false
+Explanation: You cannot find a way to form a square with all the matchsticks.
+ 
+
+Constraints:
+
+1 <= matchsticks.length <= 15
+0 <= matchsticks[i] <= 109
+
+Solution:
+Python:
+class Solution:
+    def makesquare(self, nums):
+        N = len(nums)
+        basket, rem = divmod(sum(nums), 4)
+        if rem or max(nums) > basket: return False
+        
+        @lru_cache(None)
+        def dfs(mask):
+            if mask == 0: return 0
+            for j in range(N):
+                if mask & 1<<j:
+                    neib = dfs(mask ^ 1<<j)
+                    if neib >= 0 and neib + nums[j] <= basket:
+                        return (neib + nums[j]) % basket
+            return -1
+                    
+        return dfs((1<<N) - 1) == 0
