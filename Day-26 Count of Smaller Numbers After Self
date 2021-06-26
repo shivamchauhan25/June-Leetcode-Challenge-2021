@@ -1,0 +1,82 @@
+Count of Smaller Numbers After Self
+
+You are given an integer array nums and you have to return a new counts array. The counts array has the property where counts[i] is the number of smaller elements to the right of nums[i].
+
+ 
+
+Example 1:
+
+Input: nums = [5,2,6,1]
+Output: [2,1,1,0]
+Explanation:
+To the right of 5 there are 2 smaller elements (2 and 1).
+To the right of 2 there is only 1 smaller element (1).
+To the right of 6 there is 1 smaller element (1).
+To the right of 1 there is 0 smaller element.
+Example 2:
+
+Input: nums = [-1]
+Output: [0]
+Example 3:
+
+Input: nums = [-1,-1]
+Output: [0,0]
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+-104 <= nums[i] <= 104
+
+Solution:
+C++:
+
+class Solution {
+public:
+    
+   int t[80004+10],a[20001+10];
+    void build(int v,int tl,int tr){
+    if(tl==tr)t[v]=a[tl];
+    else{
+        int tm=(tl+tr)/2;
+        build(2*v,tl,tm);
+        build(2*v+1,tm+1,tr);
+        t[v]=t[2*v]+t[2*v+1];
+    }
+}
+int sum(int v,int tl,int tr,int l,int r){
+    if(l>r)return 0;
+    if(l==tl && r==tr)return t[v];
+    int tm=(tl+tr)/2;
+    return sum(2*v,tl,tm,l,min(r,tm))+sum(2*v+1,tm+1,tr,max(l,tm+1),r);
+}
+void update(int v,int tl,int tr,int pos,int val){
+    if(tl==tr)t[v]+=val;
+    else{
+        int tm=(tl+tr)/2;
+        if(pos<=tm)update(2*v,tl,tm,pos,val);
+        else update(2*v+1,tm+1,tr,pos,val);
+        t[v]=t[2*v]+t[2*v+1];
+    }
+}
+    
+    vector<int> countSmaller(vector<int>& nums) {
+        vector<int>temp=nums;
+        unordered_map<int,int>mp;
+        int val=0;
+        sort(temp.begin(),temp.end());
+        mp[temp[0]]=val;
+        int n=nums.size();
+        for(int i=1;i<n;i++){
+            if(temp[i]!=temp[i-1])val++;
+            mp[temp[i]]=val;
+        }
+        int nn=20001;
+        build(1,0,nn-1);
+        for(int i=n-1;i>=0;i--){
+            temp[i]=sum(1,0,nn-1,0,mp[nums[i]]-1);
+            update(1,0,nn-1,mp[nums[i]],1);
+        }
+        return temp;
+    }
+};
